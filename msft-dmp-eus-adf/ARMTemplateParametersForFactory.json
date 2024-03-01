@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "msft-dmp-eus-adf"
+		},
+		"AzureBlobStorage_Source_connectionString": {
+			"value": ""
+		},
+		"LoggingStorage_connectionString": {
+			"value": ""
+		},
+		"SFTP_Target_password": {
+			"value": ""
+		},
+		"SFTP_Target_properties_typeProperties_host": {
+			"value": "mrmadfwus2satarget.blob.core.windows.net"
+		},
+		"SFTP_Target_properties_typeProperties_userName": {
+			"value": "mrmadfwus2satarget.inbox.mrmcderm"
+		}
+	}
+}

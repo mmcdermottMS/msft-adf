@@ -1,0 +1,77 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "msft-dmp-eus-adf"
+		},
+		"AzureBlobStorage_Source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage_Source'"
+		},
+		"LoggingStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LoggingStorage'"
+		},
+		"SFTP_Target_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SFTP_Target'"
+		},
+		"SFTP_Target_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "mrmadfwus2satarget.blob.core.windows.net"
+		},
+		"SFTP_Target_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "mrmadfwus2satarget.inbox.mrmcderm"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "msft-dmp-eus-adf_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureBlobStorage_Source_connectionString": {
+						"value": "[parameters('AzureBlobStorage_Source_connectionString')]"
+					},
+					"LoggingStorage_connectionString": {
+						"value": "[parameters('LoggingStorage_connectionString')]"
+					},
+					"SFTP_Target_password": {
+						"value": "[parameters('SFTP_Target_password')]"
+					},
+					"SFTP_Target_properties_typeProperties_host": {
+						"value": "[parameters('SFTP_Target_properties_typeProperties_host')]"
+					},
+					"SFTP_Target_properties_typeProperties_userName": {
+						"value": "[parameters('SFTP_Target_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

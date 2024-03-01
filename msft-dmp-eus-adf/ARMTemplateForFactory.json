@@ -1,0 +1,523 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "msft-dmp-eus-adf"
+		},
+		"AzureBlobStorage_Source_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage_Source'"
+		},
+		"LoggingStorage_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LoggingStorage'"
+		},
+		"SFTP_Target_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'SFTP_Target'"
+		},
+		"SFTP_Target_properties_typeProperties_host": {
+			"type": "string",
+			"defaultValue": "mrmadfwus2satarget.blob.core.windows.net"
+		},
+		"SFTP_Target_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "mrmadfwus2satarget.inbox.mrmcderm"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Copy_from_ABS_to_SFTP')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy to SFTP",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get SFTP Linked Service Details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "source-data//"
+							},
+							{
+								"name": "Destination",
+								"value": "/drop/"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "SftpWriteSettings",
+									"copyBehavior": "FlattenHierarchy",
+									"operationTimeout": "01:00:00",
+									"useTempFileRename": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"logSettings": {
+								"enableCopyActivityLog": true,
+								"copyActivityLogSettings": {
+									"logLevel": "Info",
+									"enableReliableLogging": false
+								},
+								"logLocationSettings": {
+									"linkedServiceName": {
+										"referenceName": "LoggingStorage",
+										"type": "LinkedServiceReference"
+									},
+									"path": "adf-internal-logging"
+								}
+							},
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['id']"
+										},
+										"sink": {
+											"name": "id",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Street1']"
+										},
+										"sink": {
+											"name": "Street1",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Street2']"
+										},
+										"sink": {
+											"name": "Street2",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['City']"
+										},
+										"sink": {
+											"name": "City",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['State']"
+										},
+										"sink": {
+											"name": "State",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['Zip']"
+										},
+										"sink": {
+											"name": "Zip",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['ZipExtension']"
+										},
+										"sink": {
+											"name": "ZipExtension",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['CreatedDateUtc']"
+										},
+										"sink": {
+											"name": "CreatedDateUtc",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['UpdatedDateUtc']"
+										},
+										"sink": {
+											"name": "UpdatedDateUtc",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "$['LatencyMs']"
+										},
+										"sink": {
+											"name": "LatencyMs",
+											"type": "Int32"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "SourceDataset_44n",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DestinationDataset_44n",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Get SFTP Linked Service Details",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://management.azure.com/subscriptions/7029af60-98ff-4083-96c0-695eba78c91b/resourceGroups/cloud-shell-storage-eastus/providers/Microsoft.DataFactory/factories/msft-dmp-eus-adf/linkedservices/SFTP_Target?api-version=2018-06-01",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://management.azure.com"
+							}
+						}
+					},
+					{
+						"name": "Get Linked Service Name",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Get SFTP Linked Service Details",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "TargetHostName",
+							"value": {
+								"value": "@activity('Get SFTP Linked Service Details').output.properties.typeProperties.host",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Write out to External Logger",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Get Linked Service Name",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://www.bing.com",
+							"body": {
+								"value": "@variables('TargetHostName')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Unable to log target hostname",
+						"type": "Fail",
+						"dependsOn": [
+							{
+								"activity": "Get SFTP Linked Service Details",
+								"dependencyConditions": [
+									"Failed"
+								]
+							},
+							{
+								"activity": "Get Linked Service Name",
+								"dependencyConditions": [
+									"Failed"
+								]
+							},
+							{
+								"activity": "Write out to External Logger",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"message": "Unable to log target host name",
+							"errorCode": "500"
+						}
+					},
+					{
+						"name": "Unable to Copy to Target SFTP",
+						"type": "Fail",
+						"dependsOn": [
+							{
+								"activity": "Copy to SFTP",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"message": "Unable to Copy to Target SFTP",
+							"errorCode": "501"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"foo": {
+						"type": "String"
+					},
+					"TargetHostName": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-03-01T18:07:56Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SourceDataset_44n')]",
+				"[concat(variables('factoryId'), '/datasets/DestinationDataset_44n')]",
+				"[concat(variables('factoryId'), '/linkedServices/LoggingStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DestinationDataset_44n')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SFTP_Target",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "SftpLocation",
+						"folderPath": "/drop"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SFTP_Target')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LogOutput')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LoggingStorage",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "copy-test"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LoggingStorage')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SourceDataset_44n')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage_Source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "source-data"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"id": {
+							"type": "string"
+						},
+						"Street1": {
+							"type": "string"
+						},
+						"Street2": {
+							"type": "string"
+						},
+						"City": {
+							"type": "string"
+						},
+						"State": {
+							"type": "string"
+						},
+						"Zip": {
+							"type": "string"
+						},
+						"ZipExtension": {
+							"type": "string"
+						},
+						"CreatedDateUtc": {
+							"type": "string"
+						},
+						"UpdatedDateUtc": {
+							"type": "string"
+						},
+						"LatencyMs": {
+							"type": "number"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage_Source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage_Source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage_Source_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LoggingStorage')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('LoggingStorage_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SFTP_Target')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Sftp",
+				"typeProperties": {
+					"host": "[parameters('SFTP_Target_properties_typeProperties_host')]",
+					"port": 22,
+					"skipHostKeyValidation": true,
+					"authenticationType": "Basic",
+					"userName": "[parameters('SFTP_Target_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('SFTP_Target_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
