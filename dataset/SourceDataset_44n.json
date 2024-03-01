@@ -1,0 +1,53 @@
+{
+	"name": "SourceDataset_44n",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage_Source",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "source-data"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"Street1": {
+					"type": "string"
+				},
+				"Street2": {
+					"type": "string"
+				},
+				"City": {
+					"type": "string"
+				},
+				"State": {
+					"type": "string"
+				},
+				"Zip": {
+					"type": "string"
+				},
+				"ZipExtension": {
+					"type": "string"
+				},
+				"CreatedDateUtc": {
+					"type": "string"
+				},
+				"UpdatedDateUtc": {
+					"type": "string"
+				},
+				"LatencyMs": {
+					"type": "number"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

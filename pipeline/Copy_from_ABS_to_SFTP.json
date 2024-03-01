@@ -1,0 +1,239 @@
+{
+	"name": "Copy_from_ABS_to_SFTP",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_44n",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Read ADF Pipeline Details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "source-data//"
+					},
+					{
+						"name": "Destination",
+						"value": "/drop/"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"wildcardFileName": "*",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"copyBehavior": "FlattenHierarchy",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Info",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "LoggingStorage",
+								"type": "LinkedServiceReference"
+							},
+							"path": "adf-internal-logging"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "$['id']"
+								},
+								"sink": {
+									"name": "id",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Street1']"
+								},
+								"sink": {
+									"name": "Street1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Street2']"
+								},
+								"sink": {
+									"name": "Street2",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['City']"
+								},
+								"sink": {
+									"name": "City",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['State']"
+								},
+								"sink": {
+									"name": "State",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['Zip']"
+								},
+								"sink": {
+									"name": "Zip",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['ZipExtension']"
+								},
+								"sink": {
+									"name": "ZipExtension",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['CreatedDateUtc']"
+								},
+								"sink": {
+									"name": "CreatedDateUtc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['UpdatedDateUtc']"
+								},
+								"sink": {
+									"name": "UpdatedDateUtc",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "$['LatencyMs']"
+								},
+								"sink": {
+									"name": "LatencyMs",
+									"type": "Int32"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_44n",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_44n",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Read ADF Pipeline Details",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://management.azure.com/subscriptions/7029af60-98ff-4083-96c0-695eba78c91b/resourceGroups/cloud-shell-storage-eastus/providers/Microsoft.DataFactory/factories/msft-dmp-eus-adf/pipelines?api-version=2018-06-01",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.azure.com"
+					}
+				}
+			},
+			{
+				"name": "Get Linked Service Name",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Read ADF Pipeline Details",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "foo",
+					"value": {
+						"value": "@activity('Read ADF Pipeline Details').output.value[0].id",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"foo": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-03-01T18:07:56Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

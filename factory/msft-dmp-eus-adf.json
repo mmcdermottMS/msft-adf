@@ -1,0 +1,9 @@
+{
+	"name": "msft-dmp-eus-adf",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "dba112d4-6fec-4d17-b4e2-a57357598918",
+		"tenantId": "16b3c013-d300-468d-ac64-7eda0820b6d3"
+	}
+}
