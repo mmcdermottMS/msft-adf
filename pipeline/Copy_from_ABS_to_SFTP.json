@@ -3,11 +3,11 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy_44n",
+				"name": "Copy to SFTP",
 				"type": "Copy",
 				"dependsOn": [
 					{
-						"activity": "Read ADF Pipeline Details",
+						"activity": "Get SFTP Linked Service Details",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -182,7 +182,7 @@
 				]
 			},
 			{
-				"name": "Read ADF Pipeline Details",
+				"name": "Get SFTP Linked Service Details",
 				"type": "WebActivity",
 				"dependsOn": [],
 				"policy": {
@@ -195,7 +195,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"method": "GET",
-					"url": "https://management.azure.com/subscriptions/7029af60-98ff-4083-96c0-695eba78c91b/resourceGroups/cloud-shell-storage-eastus/providers/Microsoft.DataFactory/factories/msft-dmp-eus-adf/pipelines?api-version=2018-06-01",
+					"url": "https://management.azure.com/subscriptions/7029af60-98ff-4083-96c0-695eba78c91b/resourceGroups/cloud-shell-storage-eastus/providers/Microsoft.DataFactory/factories/msft-dmp-eus-adf/linkedservices/SFTP_Target?api-version=2018-06-01",
 					"authentication": {
 						"type": "MSI",
 						"resource": "https://management.azure.com"
@@ -207,7 +207,7 @@
 				"type": "SetVariable",
 				"dependsOn": [
 					{
-						"activity": "Read ADF Pipeline Details",
+						"activity": "Get SFTP Linked Service Details",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -219,16 +219,93 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "foo",
+					"variableName": "TargetHostName",
 					"value": {
-						"value": "@activity('Read ADF Pipeline Details').output.value[0].id",
+						"value": "@activity('Get SFTP Linked Service Details').output.properties.typeProperties.host",
 						"type": "Expression"
 					}
+				}
+			},
+			{
+				"name": "Write out to External Logger",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Get Linked Service Name",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://www.bing.com",
+					"body": {
+						"value": "@variables('TargetHostName')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Unable to log target hostname",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Get SFTP Linked Service Details",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "Get Linked Service Name",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "Write out to External Logger",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "Unable to log target host name",
+					"errorCode": "500"
+				}
+			},
+			{
+				"name": "Unable to Copy to Target SFTP",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Copy to SFTP",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "Unable to Copy to Target SFTP",
+					"errorCode": "501"
 				}
 			}
 		],
 		"variables": {
 			"foo": {
+				"type": "String"
+			},
+			"TargetHostName": {
 				"type": "String"
 			}
 		},
